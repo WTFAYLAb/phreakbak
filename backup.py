@@ -39,7 +39,7 @@ class Backup:
         #None, real absolute paths will be used.
 
         self.verbose = verbose
-        
+        print ("backupBasePath is ", backupBasePath)
         self.backupBasePath = os.path.abspath(backupBasePath)
         
         if (host is None):
@@ -64,13 +64,13 @@ class Backup:
         else:
             self.repoPath = os.path.join(backupBasePath, repoPath)
 
-        self.dbh = sqlite3.connect(dbPath)
+        self.dbh = sqlite3.connect(self.dbPath)
         
         self.runId = runId
         
         self.destination = destination
 
-        self.source = source
+        self.sourceBase = sourceBase
 
         self.cas = cas.CAS(self.repoPath)
         self.runTable = bumddb.RunTable(self.dbh, create = True)
@@ -84,11 +84,11 @@ class Backup:
 
     def getUsablePaths(self, path):
 
-        realFilePath = os.path.abspath(dir[0])
+        realFilePath = os.path.abspath(path)
         if (self.sourceBase is None):
             filePath = realFilePath
         else:
-            filepath = "/" + os.path.relpath(dir[0], self.sourceBase)
+            filepath = "/" + os.path.relpath(path, self.sourceBase)
 
         return realFilePath, filePath
         
@@ -96,7 +96,9 @@ class Backup:
         self.runId = self.runTable.getId(self.host, time.time())
         self.dbh.commit()
 
-        self.runTable.updateStatus(runId, "Running")
+        print ("Run ID is", self.runId)
+        
+        self.runTable.updateStatus(self.runId, "Running")
         
         for subject in subjectlist:
             for directory in os.walk(subject):
@@ -106,7 +108,7 @@ class Backup:
                 print ("DIR  ", realFilePath)
                 
                 for subfile in directory[2]:
-                    realFilePath, filePath = self.getUablePaths(os.path.join(directory[0], subfile))
+                    realFilePath, filePath = self.getUsablePaths(os.path.join(directory[0], subfile))
                     if (os.path.islink(realFilePath)):
                         destPath = os.readlink(realFilePath)
                         self.linkTable.getId(runId, filePath, destPath)
@@ -122,7 +124,7 @@ class Backup:
                             if (self.verbose): print ("REUSE", realFilePath)
                             filesha = existing
                         
-                        self.fileTable.getId(runId, filePath, stats.st_uid, stats.st_gid, stats.st_mode, stats.st_size, stats.st_mtime, filesha)
+                        self.fileTable.getId(self.runId, filePath, stats.st_uid, stats.st_gid, stats.st_mode, stats.st_size, stats.st_mtime, filesha)
 
                         if (self.cas.isvalidkey(filesha)):
                             pass
@@ -135,8 +137,8 @@ class Backup:
 
                 self.dbh.commit()
                         
-        self.runTable.updateStatus(runId, "Complete")
-        self.runTable.updateEndTime(runId, time.time())
+        self.runTable.updateStatus(self.runId, "Complete")
+        self.runTable.updateEndtime(self.runId, time.time())
         self.dbh.commit()
         print ("Backup completed.")
 
@@ -167,7 +169,13 @@ def main():
         print ("remote", args.remote)
         print ("subject", args.subject)
     
-    backup = Backup(args.repository, args.mdbpath, args.repository, args.node, args.dest, args.sourcebase, args.verbose)
+    backup = Backup(backupBasePath = args.remote,
+                    dbPath = args.mdbpath,
+                    repoPath = args.repository,
+                    host = args.node,
+                    destination = args.dest,
+                    sourceBase = args.sourcebase,
+                    verbose = args.verbose)
     if (args.command == "backup"):
         backup.backup(args.subject)
     else:
