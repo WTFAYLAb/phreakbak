@@ -151,6 +151,15 @@ class Backup:
                 time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(result['endtime'])),
                 result['status']
             ))
+
+    def search (self, subjectlist):
+        for result in self.filepathTable.search(subjectlist):
+            print ("%4s %12s %19s %s" % (
+                result['type'],
+                result['host'],
+                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(result['filetime'])),
+                result['filepath']
+            ))
         
 def main():
     parser = argparse.ArgumentParser()
@@ -193,6 +202,8 @@ def main():
         if (len(args.subject) < 2):
             endTime = None
         backup.list(startTime, endTime)
+    elif (args.command == 'search'):
+        backup.search(args.subject)
     else:
         raise NotImplementedError(args.command)
 
