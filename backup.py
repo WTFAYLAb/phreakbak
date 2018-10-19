@@ -142,7 +142,16 @@ class Backup:
         self.dbh.commit()
         print ("Backup completed.")
 
-
+    def list(self, notBefore = None, notAfter = None):
+        for result in self.runTable.listBackups(self.host, notBefore, notAfter):
+            print ("%6d %12s %19s %19s %10s" % (
+                result['runId'],
+                result['host'],
+                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(result['starttime'])),
+                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(result['endtime'])),
+                result['status']
+            ))
+        
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbose", help="Verbose output", action="store_true")
@@ -154,7 +163,7 @@ def main():
     parser.add_argument("-s", "--sourcebase", help="Base path to use in the backup", type=str)
     parser.add_argument("command", help="What action to take: backup, restore, list, search", type=str, choices=['backup','restore','list','search'])
     parser.add_argument("remote", help="Base path to backup storage", type=str)
-    parser.add_argument("subject", help="Items to be backed up or restored", type=str, nargs="+")
+    parser.add_argument("subject", help="Items to be backed up or restored", type=str, nargs="*")
     args = parser.parse_args()
 
     if (args.verbose):
@@ -178,6 +187,12 @@ def main():
                     verbose = args.verbose)
     if (args.command == "backup"):
         backup.backup(args.subject)
+    elif (args.command == "list"):
+        if (len(args.subject) < 1):
+            startTime = None
+        if (len(args.subject) < 2):
+            endTime = None
+        backup.list(startTime, endTime)
     else:
         raise NotImplementedError(args.command)
 
