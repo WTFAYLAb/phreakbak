@@ -122,47 +122,56 @@ class Backup:
         
         self.runTable.updateStatus(self.runId, "Running")
         
-        for subject in subjectlist:
-            for directory in os.walk(subject):
-                realFilePath, filePath = self.getUsablePaths(directory[0])
-                stats = os.lstat(realFilePath)
-                self.directoryTable.getId(self.runId, filePath, stats.st_uid, stats.st_gid, stats.st_mode, stats.st_mtime)
-                print ("DIR  ", realFilePath)
+        try:
+            for subject in subjectlist:
+                for directory in os.walk(subject):
+                    realFilePath, filePath = self.getUsablePaths(directory[0])
+                    stats = os.lstat(realFilePath)
+                    self.directoryTable.getId(self.runId, filePath, stats.st_uid, stats.st_gid, stats.st_mode, stats.st_mtime)
+                    print ("DIR  ", realFilePath)
                 
-                for subfile in directory[2]:
-                    realFilePath, filePath = self.getUsablePaths(os.path.join(directory[0], subfile))
-                    if (os.path.islink(realFilePath)):
-                        destPath = os.readlink(realFilePath)
-                        self.linkTable.getId(self.runId, filePath, destPath)
-                        print ("LINK ", realFilePath)
+                    for subfile in directory[2]:
+                        realFilePath, filePath = self.getUsablePaths(os.path.join(directory[0], subfile))
+                        if (os.path.islink(realFilePath)):
+                            destPath = os.readlink(realFilePath)
+                            self.linkTable.getId(self.runId, filePath, destPath)
+                            print ("LINK ", realFilePath)
                         
-                    elif (os.path.isfile(realFilePath)):
-                        stats = os.lstat(realFilePath)
-                        existing = self.fileTable.getExistingRecord(self.host, filePath, stats.st_size, stats.st_mtime)
-                        if (existing is None):
-                            if (self.verbose): print ("HASH ", realFilePath)
-                            filesha = self.cas.hashfile(realFilePath)
-                        else:
-                            if (self.verbose): print ("REUSE", realFilePath)
-                            filesha = existing
+                        elif (os.path.isfile(realFilePath)):
+                            stats = os.lstat(realFilePath)
+                            existing = self.fileTable.getExistingRecord(self.host, filePath, stats.st_size, stats.st_mtime)
+                            if (existing is None):
+                                if (self.verbose): print ("HASH ", realFilePath)
+                                filesha = self.cas.hashfile(realFilePath)
+                            else:
+                                if (self.verbose): print ("REUSE", realFilePath)
+                                filesha = existing
                         
-                        self.fileTable.getId(self.runId, filePath, stats.st_uid, stats.st_gid, stats.st_mode, stats.st_size, stats.st_mtime, filesha)
+                            self.fileTable.getId(self.runId, filePath, stats.st_uid, stats.st_gid, stats.st_mode, stats.st_size, stats.st_mtime, filesha)
 
-                        if (self.cas.isvalidkey(filesha)):
+                            if (self.cas.isvalidkey(filesha)):
+                                pass
+                            else:
+                                print ("SEND ", realFilePath)
+                                self.cas.putfile(realFilePath, filesha)
+
+                        else:
                             pass
-                        else:
-                            print ("SEND ", realFilePath)
-                            self.cas.putfile(realFilePath, filesha)
 
-                    else:
-                        pass
+                        self.dbh.commit()
 
-                self.dbh.commit()
-
-        self.runTable.updateStatus(self.runId, "Complete")
-        self.runTable.updateEndtime(self.runId, time.time())
-        self.dbh.commit()
-        print ("Backup completed.")
+        except KeyboardInterrupt:
+            self.runTable.updateStatus(self.runId, "Aborted")
+            print ("Backup aborted.")
+        except:
+            self.runTable.updateStatus(self.runId, "Failed")
+            print ("Backup failed.")
+        else:
+            self.runTable.updateStatus(self.runId, "Complete")
+            print ("Backup completed.")
+        finally:
+            self.runTable.updateEndtime(self.runId, time.time())
+            self.dbh.commit()
 
     def list(self, notBefore = None, notAfter = None):
         """Reports out a list of backups that are stored in the database.
