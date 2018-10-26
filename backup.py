@@ -185,10 +185,10 @@ class Backup:
                 os.remove(newlink)
             if (os.path.exists(newlink) and not os.path.islink(newlink)):
                 raise Exception ("Unable to create link %s: something else is already there." % newlink)
-            os.symlink(result['destpath'], result['newlink'])
+            os.symlink(result['destpath'], newlink)
 
         for result in self.fileTable.restoreList (self.runId, subjectlist):
-            newfile = os.path.abspath(os.path.join(self.restdest, os.path.relpath(result['filepath'], '/')))
+            newfile = os.path.abspath(os.path.join(self.destination, os.path.relpath(result['filepath'], '/')))
             if (self.verbose):
                 print ("FILE ", newfile)
 
@@ -232,7 +232,8 @@ def main():
                     host = args.node,
                     destination = args.dest,
                     sourceBase = args.sourcebase,
-                    verbose = args.verbose)
+                    verbose = args.verbose,
+                    runId = args.runid)
     if (args.command == "backup"):
         backup.backup(args.subject)
     elif (args.command == "list"):
@@ -243,6 +244,8 @@ def main():
         backup.list(startTime, endTime)
     elif (args.command == 'search'):
         backup.search(args.subject)
+    elif (args.command == 'restore'):
+        backup.restore(args.subject)
     else:
         raise NotImplementedError(args.command)
 
