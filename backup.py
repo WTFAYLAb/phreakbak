@@ -111,7 +111,7 @@ class Backup:
                     realFilePath, filePath = self.getUsablePaths(os.path.join(directory[0], subfile))
                     if (os.path.islink(realFilePath)):
                         destPath = os.readlink(realFilePath)
-                        self.linkTable.getId(runId, filePath, destPath)
+                        self.linkTable.getId(self.runId, filePath, destPath)
                         print ("LINK ", realFilePath)
                         
                     elif (os.path.isfile(realFilePath)):
@@ -136,7 +136,7 @@ class Backup:
                         pass
 
                 self.dbh.commit()
-                        
+
         self.runTable.updateStatus(self.runId, "Complete")
         self.runTable.updateEndtime(self.runId, time.time())
         self.dbh.commit()
@@ -160,7 +160,46 @@ class Backup:
                 time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(result['filetime'])),
                 result['filepath']
             ))
-        
+
+    def restore(self, subjectlist):
+        for result in self.directoryTable.restoreList(self.runId, subjectlist):
+            newdir = os.path.abspath(os.path.join(self.destination, os.path.relpath(result['filepath'], '/')))
+            if (self.verbose):
+                print ("DIR  ", newdir)
+
+            if (os.path.exists(newdir)):
+                if (not os.path.isdir(newdir)):
+                    raise Exception ("Unable to create directory %s: something else is already there." % newdir)
+            else:
+                os.makedirs(newdir)
+            os.chown (newdir, result['fileowner'], result['filegroup'])
+            os.chmod (newdir, result['filemode'])
+            os.utime(newdir, (result['filetime'], result['filetime']))
+
+        for result in self.linkTable.restoreList (self.runId, subjectlist):
+            newlink = os.path.abspath(os.path.join(self.destination, os.path.relpath(result['filepath'], '/')))
+            if (self.verbose):
+                print ("LINK ", newlink)
+
+            if (os.path.islink(newlink)):
+                os.remove(newlink)
+            if (os.path.exists(newlink) and not os.path.islink(newlink)):
+                raise Exception ("Unable to create link %s: something else is already there." % newlink)
+            os.symlink(result['destpath'], result['newlink'])
+
+        for result in self.fileTable.restoreList (self.runId, subjectlist):
+            newfile = os.path.abspath(os.path.join(self.restdest, os.path.relpath(result['filepath'], '/')))
+            if (self.verbose):
+                print ("FILE ", newfile)
+
+            self.cas.getfile(result['filesha'], newfile)
+            if (self.verbose):
+                print ("FILE ", newfile)
+            os.chown(newfile, result['fileowner'], result['filegroup'])
+            os.chmod(newfile, result['filemode'])
+            os.utime(newfile, (result['filetime'], result['filetime']))
+
+            
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbose", help="Verbose output", action="store_true")
