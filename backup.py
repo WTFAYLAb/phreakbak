@@ -9,10 +9,14 @@ import time
 import argparse
 
 class Backup:
+    """Implements the core of a backup system.  This class gets
+    instantiated with the core properties, and then has methods to
+    implement backup, restore, list and search operations.
+
+    """
     def __init__(self, backupBasePath, dbPath = None, repoPath = None,
                  host = None, runId = None, destination = None,
                  sourceBase = None, verbose = False):
-
         #backupBasePath - databases and repo directory would be here by default.
         
         #dbPath - if absolute, it's a path to the database.  .db will
@@ -38,6 +42,13 @@ class Backup:
         #/home/smith/.bashrc will be backed up as /.bashrc.  If set to
         #None, real absolute paths will be used.
 
+        """Initializes the Backup object.  In addition to putting properties
+        onto the object, it also creates a connection to a database
+        (and puts that on the object) and instantiates a CAS object
+        and most types of bumddb objects and puts those instances on
+        the Backup object.
+
+        """
         self.verbose = verbose
         print ("backupBasePath is ", backupBasePath)
         self.backupBasePath = os.path.abspath(backupBasePath)
@@ -83,7 +94,10 @@ class Backup:
         self.fileTable = bumddb.FileTable(self.dbh, create = True)
 
     def getUsablePaths(self, path):
+        """Takes a path, modifies it as required by the Backup object
+        properties, returns the altered path as an absolute path.
 
+        """
         realFilePath = os.path.abspath(path)
         if (self.sourceBase is None):
             filePath = realFilePath
@@ -93,6 +107,14 @@ class Backup:
         return realFilePath, filePath
         
     def backup(self, subjectlist):
+        """Loops over all of the paths provided in subjectlist, walking the
+        file tree under each.  Backs up all of the objects.
+        Directores are recorded by path, ownership, permissions; files
+        add a SHA256 hash, symlinks are just the path and target.
+
+        Files are then copied into a repository by hash.
+
+        """
         self.runId = self.runTable.getId(self.host, time.time())
         self.dbh.commit()
 
@@ -143,6 +165,9 @@ class Backup:
         print ("Backup completed.")
 
     def list(self, notBefore = None, notAfter = None):
+        """Reports out a list of backups that are stored in the database.
+
+        """
         for result in self.runTable.listBackups(self.host, notBefore, notAfter):
             print ("%6d %12s %19s %19s %10s" % (
                 result['runId'],
@@ -153,6 +178,10 @@ class Backup:
             ))
 
     def search (self, subjectlist):
+        """Reports out a list of files, in any backup in the database, which
+        have a substring match with one of the search subjects.
+
+        """
         for result in self.filepathTable.search(subjectlist):
             print ("%4s %12s %19s %s" % (
                 result['type'],
@@ -162,6 +191,11 @@ class Backup:
             ))
 
     def restore(self, subjectlist):
+        """Recreates a file tree from the specified backup.  If no subjects
+        are listed, all directories, files and links are recreated in
+        the destination.
+
+        """
         for result in self.directoryTable.restoreList(self.runId, subjectlist):
             newdir = os.path.abspath(os.path.join(self.destination, os.path.relpath(result['filepath'], '/')))
             if (self.verbose):
@@ -201,6 +235,10 @@ class Backup:
 
             
 def main():
+    """Parses the arguments, instantiates a Backup object, and calls the
+    appropriate method.
+
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbose", help="Verbose output", action="store_true")
     parser.add_argument("-m", "--mdbpath", help="Path or filename to database", type=str)
