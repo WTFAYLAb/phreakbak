@@ -121,6 +121,7 @@ class Backup:
         print ("Run ID is", self.runId)
         
         self.runTable.updateStatus(self.runId, "Running")
+        self.dbh.commit()
         
         try:
             for subject in subjectlist:
@@ -158,7 +159,7 @@ class Backup:
                         else:
                             pass
 
-                        self.dbh.commit()
+                self.dbh.commit()
 
         except KeyboardInterrupt:
             self.runTable.updateStatus(self.runId, "Aborted")
