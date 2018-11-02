@@ -150,7 +150,7 @@ class Backup:
                         
                             self.fileTable.getId(self.runId, filePath, stats.st_uid, stats.st_gid, stats.st_mode, stats.st_size, stats.st_mtime, filesha)
 
-                            if (self.cas.isvalidkey(filesha)):
+                            if (self.cas.exists(filesha)):
                                 pass
                             else:
                                 print ("SEND ", realFilePath)
