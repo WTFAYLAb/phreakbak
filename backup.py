@@ -257,8 +257,8 @@ def main():
     parser.add_argument("-i", "--runid", help="Run ID number", type=int)
     parser.add_argument("-d", "--dest", help="Destination for restore", type=str)
     parser.add_argument("-s", "--sourcebase", help="Base path to use in the backup", type=str)
+    parser.add_argument("-e", "--remote", help="Base path to backup storage", type=str, default="/backup")
     parser.add_argument("command", help="What action to take: backup, restore, list, search", type=str, choices=['backup','restore','list','search'])
-    parser.add_argument("remote", help="Base path to backup storage", type=str)
     parser.add_argument("subject", help="Items to be backed up or restored", type=str, nargs="*")
     args = parser.parse_args()
 
