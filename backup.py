@@ -8,7 +8,22 @@ import platform
 import time
 import argparse
 
-class Backup:
+class HashList (object):
+    def __init__(self, backupBasePath, verbose=False):
+        self.backupBasePath = backupBasePath
+        self.hashSet = set()
+
+        repoListFile = os.path.join(self.backupBasePath, "repolist.txt")
+        if os.path.exists(repoListFile):
+            with open(repoListFile, 'r') as infile:
+                for inline in infile:
+                    hash = inline[3:67]
+                    self.hashSet.add(hash)
+
+    def contains(self, hash):
+        return hash in self.HashSet
+    
+class Backup (object):
     """Implements the core of a backup system.  This class gets
     instantiated with the core properties, and then has methods to
     implement backup, restore, list and search operations.
@@ -93,6 +108,8 @@ class Backup:
         self.linkTable = bumddb.LinkTable(self.dbh, create = True)
         self.fileTable = bumddb.FileTable(self.dbh, create = True)
 
+        self.hashList = HashList(self.backupBasePath, self.verbose)
+        
     def getUsablePaths(self, path):
         """Takes a path, modifies it as required by the Backup object
         properties, returns the altered path as an absolute path.
@@ -150,7 +167,7 @@ class Backup:
                         
                             self.fileTable.getId(self.runId, filePath, stats.st_uid, stats.st_gid, stats.st_mode, stats.st_size, stats.st_mtime, filesha)
 
-                            if (self.cas.exists(filesha)):
+                            if (self.hashList.contains(filesha) or self.cas.exists(filesha)):
                                 pass
                             else:
                                 print ("SEND ", realFilePath)
@@ -237,8 +254,6 @@ class Backup:
                 print ("FILE ", newfile)
 
             self.cas.getfile(result['filesha'], newfile)
-            if (self.verbose):
-                print ("FILE ", newfile)
             os.chown(newfile, result['fileowner'], result['filegroup'])
             os.chmod(newfile, result['filemode'])
             os.utime(newfile, (result['filetime'], result['filetime']))
