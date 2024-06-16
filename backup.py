@@ -21,7 +21,7 @@ class HashList (object):
                     self.hashSet.add(hash)
 
     def contains(self, hash):
-        return hash in self.HashSet
+        return hash in self.hashSet
     
 class Backup (object):
     """Implements the core of a backup system.  This class gets
