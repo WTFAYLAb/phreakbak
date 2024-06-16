@@ -12,15 +12,23 @@ class HashList (object):
     def __init__(self, backupBasePath, verbose=False):
         self.backupBasePath = backupBasePath
         self.hashSet = set()
+        self.loaded=False
+        self.verbose=verbose
 
+    def load(self):
         repoListFile = os.path.join(self.backupBasePath, "repolist.txt")
         if os.path.exists(repoListFile):
             with open(repoListFile, 'r') as infile:
                 for inline in infile:
                     hash = inline[3:67]
                     self.hashSet.add(hash)
+        self.loaded=True
 
     def contains(self, hash):
+        if not self.loaded:
+            if self.verbose:
+                print("Loading hash list . . . . ")
+            self.load()
         return hash in self.hashSet
     
 class Backup (object):
