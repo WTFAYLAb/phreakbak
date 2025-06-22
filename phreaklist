@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+/mnt/backup/bin/backup.py -e /mnt/backup list
