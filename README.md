@@ -21,7 +21,7 @@ without having to think about that.
 ## How?
 You can use it two ways:  As a standalone program or as a module.
 
-There are two prerequisites: [CAS|https://github.com/GlennLasher/CAS] and [Bumddb|https://github.com/GlennLasher/Bumddb]. Both of these are Python
+There are two prerequisites: [CAS](https://github.com/GlennLasher/CAS) and [Bumddb](https://github.com/GlennLasher/Bumddb). Both of these are Python
 modules. Put them where Python can find them.
 
 ### As a standalone
