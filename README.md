@@ -21,9 +21,8 @@ without having to think about that.
 ## How?
 You can use it two ways:  As a standalone program or as a module.
 
-There are two prerequisites: CAS and Bumddb.  Both of these are Python
-modules that can be found on Github where this one was found.  Put
-them where Python can find them.
+There are two prerequisites: [CAS|https://github.com/GlennLasher/CAS] and [Bumddb|https://github.com/GlennLasher/Bumddb]. Both of these are Python
+modules. Put them where Python can find them.
 
 ### As a standalone
 You can do this:
@@ -203,6 +202,8 @@ sudo -i
 REPO=phreakbak
 BASE=/usr/local
 cd $BASE/src &&
+  git clone https://github.com/GlennLasher/CAS.git &&
+  git clone https://github.com/GlennLasher/Bumddb.git &&
   git clone git@github.com:WTFAYLAb/phreakbak.git &&
   cp $BASE/src/$REPO/*.py /mnt/backup/bin/ &&
   ln -srf $BASE/src/$REPO/$REPO* /usr/local/sbin
