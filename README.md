@@ -120,9 +120,9 @@ from backup import Backup
 ```
 #### Instantiating the backup
 ```bash
-    backup = Backup(backupBasePath, dbPath = None, repoPath = None,
-        host = None, runId = None, destination = None, sourceBase =
-        None, verbose = False)
+backup = Backup(backupBasePath, dbPath = None, repoPath = None,
+   host = None, runId = None, destination = None, sourceBase =
+   None, verbose = False)
 ```
 The named parameters correspond to the command line options (see
 above) as follows:
