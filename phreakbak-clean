@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+## Set variables
+HOST=$(hostname)
+WDIR=/mnt/backup
+LOG=/var/log/phreakbak.log
+
+## Purge phreakbak database and repository
+{
+	rm -vf ${WDIR}/"${HOST}".db
+	rm -rvf ${WDIR}/repository
+} | ts >> $LOG
