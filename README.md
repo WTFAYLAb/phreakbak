@@ -210,7 +210,9 @@ cd $BASE/src &&
   cp Bumddb/bumddb.py $BAK &&
   cp $REPO/*.py $BAK &&
   ln -srf $REPO/phreak* /usr/local/sbin &&
-  chmod 750 $BAK/*.py
+  chmod 750 $BAK/*.py &&
+  echo "Installation completed." || 
+  echo "Install failed." && return 1
 hash -r
 ```
 ### Automate
