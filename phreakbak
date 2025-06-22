@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+## Exit if backup drive is unmounted
+BAK_MNT=/mnt/backup
+if ! grep -q " ${BAK_MNT} " /proc/self/mountinfo; then
+	echo "Warning: '${BAK_MNT}' is not mounted, $(basename ${0}) is unable to proceed." >&2
+	exit 1
+fi
+
+/mnt/backup/bin/backup.py -e /mnt/backup backup \
+	/initrd.img \
+	/lib \
+	/libx32 \
+	/root \
+	/srv \
+	/usr \
+	/vmlinuz.old \
+	/bin \
+	/etc \
+	/initrd.img.old \
+	/lib32 \
+	/opt \
+	/lib64 \
+	/sbin \
+	/vmlinuz \
+	/var/spool/cron/crontabs \
+	/lib/modules \
+	/var/lib/mysql
