@@ -209,7 +209,7 @@ cd $BASE/src &&
   cp CAS/cas.py $BAK &&
   cp Bumddb/bumddb.py $BAK &&
   cp $REPO/*.py $BAK &&
-  ln -srf $REPO/phreak* /usr/local/sbin
+  ln -srf $REPO/phreak* /usr/local/sbin &&
   chmod 750 $BAK/*.py
 hash -r
 ```
