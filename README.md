@@ -204,8 +204,8 @@ REPO=phreakbak
 BASE=/usr/local
 cd $BASE/src &&
   git clone git@github.com:WTFAYLAb/phreakbak.git &&
-  cp $BASE/src/$REPO/*.py /mnt/backup/bin &&
-  ln -srf $BASE/src/$REPO/$REPO /usr/local/sbin
+  cp $BASE/src/$REPO/*.py /mnt/backup/bin/ &&
+  ln -srf $BASE/src/$REPO/$REPO* /usr/local/sbin
 hash -r
 ```
 ### Automate
