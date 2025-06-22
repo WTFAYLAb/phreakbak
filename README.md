@@ -201,12 +201,16 @@ sudo -i
 ```bash
 REPO=phreakbak
 BASE=/usr/local
+BAK=/mnt/backup/bin/
 cd $BASE/src &&
   git clone https://github.com/GlennLasher/CAS.git &&
   git clone https://github.com/GlennLasher/Bumddb.git &&
   git clone git@github.com:WTFAYLAb/phreakbak.git &&
-  cp $BASE/src/$REPO/*.py /mnt/backup/bin/ &&
-  ln -srf $BASE/src/$REPO/phreak* /usr/local/sbin
+  cp CAS/cas.py $BAK &&
+  cp Bumddb/bumddb.py $BAK &&
+  cp $REPO/*.py $BAK &&
+  ln -srf $REPO/phreak* /usr/local/sbin
+  chmod 750 $BAK/*.py
 hash -r
 ```
 ### Automate
